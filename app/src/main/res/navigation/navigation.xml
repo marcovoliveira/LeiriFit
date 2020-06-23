@@ -18,7 +18,7 @@
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.example.leirifit.MainFragment"
-        android:label="fragment_main_page"
+        android:label="LeiriFit"
         tools:layout="@layout/fragment_main_page">
         <argument
             android:name="participantName"
@@ -32,7 +32,7 @@
     </fragment>
     <fragment
         android:id="@+id/about"
-        android:label="fragment_about"
         android:name="com.example.leirifit.AboutFragment"
+        android:label="fragment_about"
         tools:layout="@layout/fragment_about" />
 </navigation>
