@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "631966190077",
+    "firebase_url": "https://leiriafit.firebaseio.com",
+    "project_id": "leiriafit",
+    "storage_bucket": "leiriafit.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:631966190077:android:ed612d2512626c8092b194",
+        "android_client_info": {
+          "package_name": "com.example.leirifit"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "631966190077-6fd8ovmslvq1i36vvgfqqr0e7785ifua.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBP24GOelv4awsUcD0f_4t9ASAo0ZaFS2o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "631966190077-6fd8ovmslvq1i36vvgfqqr0e7785ifua.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:631966190077:android:496192d7670fc45392b194",
+        "android_client_info": {
+          "package_name": "com.google.firebase.codelab.mlkit.automl"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "631966190077-6fd8ovmslvq1i36vvgfqqr0e7785ifua.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBP24GOelv4awsUcD0f_4t9ASAo0ZaFS2o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "631966190077-6fd8ovmslvq1i36vvgfqqr0e7785ifua.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

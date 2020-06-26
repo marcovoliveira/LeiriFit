@@ -64,8 +64,6 @@ class TitleFragment : Fragment() {
             )
         }
 
-
-        // TODO click listener para o butão do fundo
         return binding.root
     }
 
