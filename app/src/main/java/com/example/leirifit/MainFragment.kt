@@ -1,15 +1,23 @@
 package com.example.leirifit
 
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context.LOCATION_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.example.leirifit.databinding.FragmentMainPageBinding
@@ -17,10 +25,14 @@ import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.Polyline
 import com.google.firebase.ml.common.FirebaseMLException
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
+import org.json.JSONObject
 import java.io.File
 import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -29,7 +41,6 @@ import kotlin.collections.ArrayList
 /**
  * Run page fragment
  */
-// OnMapReadyCallback
 class MainFragment : Fragment(), OnMapReadyCallback {
 
     private var currentPhotoFile: File? = null
@@ -37,11 +48,17 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private var imagePreview: ImageView? = null
     private var textView: TextView? = null
 
+    // maps
     private var map: GoogleMap? = null
     private var mapFragment: SupportMapFragment? = null
     private var checkPointsDataSource = ArrayList<LatLng>();
     private var currentDataSourceIndex = 0;
     private var currentMarker: Marker? = null;
+
+    // location
+    private var locationManager: LocationManager? = null;
+    private var currentCoords: LatLng? = null;
+    private var route: Polyline? = null;
 
             override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -67,7 +84,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         textView = binding.legendTextView
         imagePreview = binding.imagePreview
         binding.cameraImageButton.setOnClickListener { takePhoto() }
-
+                // map
         createDataSource()
         handleMapCreation()
 
@@ -81,8 +98,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     private fun takePhoto() {
         Log.e(TAG, "Start take photo function")
-        showNextCheckpoint()
-       /* Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
              // Ensure that there's a camera activity to handle the intent.
              takePictureIntent.resolveActivity(requireActivity().packageManager)?.also {
                  // Create the File where the photo should go.
@@ -104,7 +120,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
                      startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
                  }
              }
-         }*/
+         }
     }
 
     /** Create a file to pass to camera app */
@@ -167,10 +183,28 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     private fun handleMapCreation() {
         mapFragment = getChildFragmentManager().findFragmentById(R.id.mapView) as SupportMapFragment?
-
+        handleLocationManagerCreation()
         mapFragment?.getMapAsync(OnMapReadyCallback {
                 onMapReady(it)
             });
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun handleLocationManagerCreation() {
+        locationManager = context?.getSystemService(LOCATION_SERVICE) as LocationManager?;
+
+        var enable = locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+        if(enable!!) {
+            locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0.1f, LocationListener {
+                handleLocationUpdates(it)
+            })
+        }
+    }
+    private fun handleLocationUpdates(location: Location) {
+        if(location != null && location.latitude != null && location.longitude != null) {
+            currentCoords = LatLng(location.latitude, location.longitude);
+        }
     }
 
    override fun onMapReady(googleMap: GoogleMap?) {
@@ -182,6 +216,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         currentMarker?.remove()
         ++currentDataSourceIndex
         handleNextCheckpointMapMovement()
+        routeRequest()
     }
 
     private fun handleNextCheckpointMapMovement() {
@@ -191,9 +226,62 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             map?.moveCamera(CameraUpdateFactory.newLatLng(checkPointsDataSource[currentDataSourceIndex]))
 
             map?.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
+
         } else if(currentDataSourceIndex+1 == checkPointsDataSource.count()){
                 // TODO: significa que terminou o percurso - mostrar estatísticas/mensagem de ganho
         }
+    }
+
+    private fun routeRequest() {
+       /* if(currentCoords != null && currentMarker != null) {
+            var url: String = "https://maps.googleapis.com/maps/api/directions/json?origin=" +
+                    currentCoords!!.latitude.toString() + "," + currentCoords!!.longitude.toString() +
+                    "&destination=" +
+                    currentMarker!!.position.toString() +
+                    "&key=" +
+                    getString(R.string.map_key); */
+            var url: String = "https://maps.googleapis.com/maps/api/directions/json?origin=" +
+                    "39.746482" + "," + "-8.809401" +
+                    "&destination=" +
+                    "39.743068,-8.805635" +
+                    "&key=" +
+                    getString(R.string.map_key);
+
+        AsyncTaskHandleJson().execute(url)
+
+       // }
+    }
+
+    inner class AsyncTaskHandleJson: AsyncTask<String, String, String>() {
+        override fun doInBackground(vararg params: String?): String {
+            var text: String = ""
+            val conn = URL(params[0]).openConnection() as HttpURLConnection
+            var json: JSONObject? = null;
+
+            try {
+                conn.connect()
+                text = conn.inputStream.use {
+                    it.reader().use{reader -> reader.readText()}
+                }
+
+            } catch (e: Exception) {
+                // TODO: catch error
+            }
+
+            drawRoute(text)
+
+            return text;
+
+        }
+    }
+
+    private fun drawRoute(response: String) {
+        if(route != null) {
+            route?.remove()
+        }
+        var json: JSONObject = JSONObject(response)
+
+//        route = map?.addPolyline(())
     }
 
     private fun createDataSource() {
