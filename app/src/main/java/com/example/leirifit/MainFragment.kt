@@ -5,12 +5,15 @@ import android.app.Activity
 import android.content.Context.LOCATION_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.view.*
@@ -22,12 +25,10 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.example.leirifit.databinding.FragmentMainPageBinding
 import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.Polyline
+import com.google.android.gms.maps.model.*
 import com.google.firebase.ml.common.FirebaseMLException
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
+import com.google.maps.android.PolyUtil
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
@@ -51,14 +52,18 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     // maps
     private var map: GoogleMap? = null
     private var mapFragment: SupportMapFragment? = null
-    private var checkPointsDataSource = ArrayList<LatLng>();
-    private var currentDataSourceIndex = 0;
-    private var currentMarker: Marker? = null;
+    private var checkPointsDataSource = ArrayList<LatLng>()
+    private var currentDataSourceIndex = 0
+    private var currentMarker: Marker? = null
+    private var userCustomMarker: Marker? = null
 
     // location
-    private var locationManager: LocationManager? = null;
-    private var currentCoords: LatLng? = null;
-    private var route: Polyline? = null;
+    private var locationManager: LocationManager? = null
+    private var currentCoords: LatLng? = null
+    private var routes = ArrayList<Polyline>()
+
+    // thread handling
+    private var uiHandler: Handler? = null;
 
             override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -84,9 +89,11 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         textView = binding.legendTextView
         imagePreview = binding.imagePreview
         binding.cameraImageButton.setOnClickListener { takePhoto() }
+
                 // map
-        createDataSource()
-        handleMapCreation()
+                uiHandler = Handler(Looper.getMainLooper())
+                createDataSource()
+                handleMapCreation()
 
         return binding.root
     }
@@ -121,6 +128,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
                  }
              }
          }
+
     }
 
     /** Create a file to pass to camera app */
@@ -182,8 +190,11 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun handleMapCreation() {
+
         mapFragment = getChildFragmentManager().findFragmentById(R.id.mapView) as SupportMapFragment?
+
         handleLocationManagerCreation()
+
         mapFragment?.getMapAsync(OnMapReadyCallback {
                 onMapReady(it)
             });
@@ -204,6 +215,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private fun handleLocationUpdates(location: Location) {
         if(location != null && location.latitude != null && location.longitude != null) {
             currentCoords = LatLng(location.latitude, location.longitude);
+            routeRequest()
         }
     }
 
@@ -216,16 +228,22 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         currentMarker?.remove()
         ++currentDataSourceIndex
         handleNextCheckpointMapMovement()
-        routeRequest()
     }
 
     private fun handleNextCheckpointMapMovement() {
         if(currentDataSourceIndex < checkPointsDataSource.count()) {
+            Toast.makeText(
+                context,
+                "OK",
+                Toast.LENGTH_LONG
+            ).show()
             currentMarker = map?.addMarker(MarkerOptions().position(checkPointsDataSource[currentDataSourceIndex]))
 
             map?.moveCamera(CameraUpdateFactory.newLatLng(checkPointsDataSource[currentDataSourceIndex]))
 
             map?.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
+
+            routeRequest()
 
         } else if(currentDataSourceIndex+1 == checkPointsDataSource.count()){
                 // TODO: significa que terminou o percurso - mostrar estatísticas/mensagem de ganho
@@ -233,23 +251,19 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun routeRequest() {
-       /* if(currentCoords != null && currentMarker != null) {
-            var url: String = "https://maps.googleapis.com/maps/api/directions/json?origin=" +
-                    currentCoords!!.latitude.toString() + "," + currentCoords!!.longitude.toString() +
-                    "&destination=" +
-                    currentMarker!!.position.toString() +
-                    "&key=" +
-                    getString(R.string.map_key); */
-            var url: String = "https://maps.googleapis.com/maps/api/directions/json?origin=" +
-                    "39.746482" + "," + "-8.809401" +
-                    "&destination=" +
-                    "39.743068,-8.805635" +
-                    "&key=" +
-                    getString(R.string.map_key);
+            if(currentCoords != null && currentMarker != null) {
 
-        AsyncTaskHandleJson().execute(url)
+                var url: String =
+                    "https://maps.googleapis.com/maps/api/directions/json?origin="+currentCoords!!.latitude.toString()+","+currentCoords!!.longitude.toString()+"&destination="+currentMarker!!.position.latitude.toString()+","+currentMarker!!.position.longitude.toString()+"&key="+ getString(R.string.map_key);
 
-       // }
+                Toast.makeText(
+                    context,
+                    url,
+                    Toast.LENGTH_LONG
+                ).show()
+                   AsyncTaskHandleJson().execute(url)
+
+            }
     }
 
     inner class AsyncTaskHandleJson: AsyncTask<String, String, String>() {
@@ -265,23 +279,95 @@ class MainFragment : Fragment(), OnMapReadyCallback {
                 }
 
             } catch (e: Exception) {
-                // TODO: catch error
+                var r = Runnable { run {
+                    Toast.makeText(
+                        context,
+                        "Error getting connection",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } }
+
+                uiHandler?.post(r)
             }
 
-            drawRoute(text)
+            drawRouteAndPersonCustomMarker(text)
 
             return text;
 
         }
     }
 
-    private fun drawRoute(response: String) {
-        if(route != null) {
-            route?.remove()
-        }
-        var json: JSONObject = JSONObject(response)
+    private fun drawRouteAndPersonCustomMarker(response: String) {
+        if(response != null && !response.isEmpty()) {
+            if(routes != null && routes.count() > 0) {
+                    var r: Runnable = Runnable { run {
+                        for(i in 0..routes.count()-1) {
 
-//        route = map?.addPolyline(())
+                            routes[i].remove()
+                    }
+                        routes = ArrayList();
+                    } }
+
+                    uiHandler?.post(r)
+            }
+
+            var j = JSONObject(response)
+
+            var jA = j!!.getJSONArray("routes")
+                .getJSONObject(0)
+                .getJSONArray("legs")
+                .getJSONObject(0)
+                .getJSONArray("steps")
+
+            var c = jA.length()
+
+            var pA = ArrayList<String>()
+
+            var j2: JSONObject
+
+            for(i in 0..c-1) {
+                j2 = jA.getJSONObject(i)
+
+                var p: String = j2.getJSONObject("polyline").getString("points")
+
+                pA.add(p)
+            }
+
+            var c2 = pA.count()
+
+            for(i in 0..c2-1) {
+                var o2 = PolylineOptions()
+
+                o2.color(Color.BLUE)
+
+                o2.width(5f)
+
+                o2.addAll(PolyUtil.decode(pA[i]))
+
+                var r: Runnable = Runnable { run {
+                       var p = map?.addPolyline(o2);
+
+                        if (p != null) {
+                            routes.add(p)
+                        }
+
+                    } }
+
+                uiHandler?.post(r)
+
+            }
+
+            // TODO: Get a cool sprite to get a cool user marker
+         /*   var r: Runnable = Runnable { run {
+
+               userCustomMarker = map?.addMarker();
+
+            } }
+
+            uiHandler?.post(r) */
+
+        }
+
     }
 
     private fun createDataSource() {
@@ -298,6 +384,12 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         checkPointsDataSource.add(LatLng(39.743775, -8.806916));
     }
 
+    private fun arrivedToCheckpoint() {
+        // TODO: aqui colocas as funções do takephoto e o resto do modelo
+        // TODO: provavelmente colocas o start nos tempos e na distância só quando ele aprovar a foto pelo modelo que está treinado
+        // TODO: utiliza um currentDataSourceIndex == 0 para saberes que ele chegou ao primeiro checkpoint
+        // TODO: quando ele validar os checkpoints, chama a função showNextCheckpoint()
+    }
     companion object {
 
         /** Tag for the [Log].  */
