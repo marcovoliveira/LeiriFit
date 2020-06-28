@@ -21,7 +21,6 @@ import java.util.Locale
 
 
 class ImageClassifier
-
 @Throws(FirebaseMLException::class)
 internal constructor(context: Context) {
 

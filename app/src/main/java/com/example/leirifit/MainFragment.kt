@@ -65,7 +65,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     // thread handling
     private var uiHandler: Handler? = null;
 
-            override fun onCreateView(
+    override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
@@ -90,10 +90,10 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         imagePreview = binding.imagePreview
         binding.cameraImageButton.setOnClickListener { takePhoto() }
 
-                // map
-                uiHandler = Handler(Looper.getMainLooper())
-                createDataSource()
-                handleMapCreation()
+        // map
+        uiHandler = Handler(Looper.getMainLooper())
+        createDataSource()
+        handleMapCreation()
 
         return binding.root
     }
@@ -106,28 +106,28 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private fun takePhoto() {
         Log.e(TAG, "Start take photo function")
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-             // Ensure that there's a camera activity to handle the intent.
-             takePictureIntent.resolveActivity(requireActivity().packageManager)?.also {
-                 // Create the File where the photo should go.
-                 val photoFile: File? = try {
-                     createImageFile()
-                 } catch (e: IOException) {
-                     // Error occurred while creating the File.
-                     Log.e(TAG, "Unable to save image to run classification.", e)
-                     null
-                 }
-                 // Continue only if the File was successfully created.
-                 photoFile?.also {
-                     val photoURI: Uri = FileProvider.getUriForFile(
-                         requireContext(),
-                         BuildConfig.APPLICATION_ID + ".provider",
-                         it
-                     )
-                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                     startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
-                 }
-             }
-         }
+            // Ensure that there's a camera activity to handle the intent.
+            takePictureIntent.resolveActivity(requireActivity().packageManager)?.also {
+                // Create the File where the photo should go.
+                val photoFile: File? = try {
+                    createImageFile()
+                } catch (e: IOException) {
+                    // Error occurred while creating the File.
+                    Log.e(TAG, "Unable to save image to run classification.", e)
+                    null
+                }
+                // Continue only if the File was successfully created.
+                photoFile?.also {
+                    val photoURI: Uri = FileProvider.getUriForFile(
+                        requireContext(),
+                        BuildConfig.APPLICATION_ID + ".provider",
+                        it
+                    )
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+                }
+            }
+        }
 
     }
 
@@ -191,7 +191,8 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     private fun handleMapCreation() {
 
-        mapFragment = getChildFragmentManager().findFragmentById(R.id.mapView) as SupportMapFragment?
+        mapFragment =
+            getChildFragmentManager().findFragmentById(R.id.mapView) as SupportMapFragment?
 
         handleLocationManagerCreation()
 
@@ -236,13 +237,14 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun handleNextCheckpointMapMovement() {
-        if(currentDataSourceIndex < checkPointsDataSource.count()) {
+        if (currentDataSourceIndex < checkPointsDataSource.count()) {
             Toast.makeText(
                 context,
                 "OK",
                 Toast.LENGTH_LONG
             ).show()
-            currentMarker = map?.addMarker(MarkerOptions().position(checkPointsDataSource[currentDataSourceIndex]))
+            currentMarker =
+                map?.addMarker(MarkerOptions().position(checkPointsDataSource[currentDataSourceIndex]))
 
             map?.moveCamera(CameraUpdateFactory.newLatLng(checkPointsDataSource[currentDataSourceIndex]))
 
@@ -250,25 +252,27 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
             routeRequest()
 
-        } else if(currentDataSourceIndex+1 == checkPointsDataSource.count()){
-                // TODO: significa que terminou o percurso - mostrar estatísticas/mensagem de ganho
+        } else if (currentDataSourceIndex + 1 == checkPointsDataSource.count()) {
+            // TODO: significa que terminou o percurso - mostrar estatísticas/mensagem de ganho
         }
     }
 
     private fun routeRequest() {
-            if(currentCoords != null && currentMarker != null) {
+        if (currentCoords != null && currentMarker != null) {
 
-                var url: String =
-                    "https://maps.googleapis.com/maps/api/directions/json?origin="+currentCoords!!.latitude.toString()+","+currentCoords!!.longitude.toString()+"&destination="+currentMarker!!.position.latitude.toString()+","+currentMarker!!.position.longitude.toString()+"&key="+ getString(R.string.map_key);
+            var url: String =
+                "https://maps.googleapis.com/maps/api/directions/json?origin=" + currentCoords!!.latitude.toString() + "," + currentCoords!!.longitude.toString() + "&destination=" + currentMarker!!.position.latitude.toString() + "," + currentMarker!!.position.longitude.toString() + "&key=" + getString(
+                    R.string.map_key
+                );
 
-                Toast.makeText(
-                    context,
-                    url,
-                    Toast.LENGTH_LONG
-                ).show()
-                   AsyncTaskHandleJson().execute(url)
+            Toast.makeText(
+                context,
+                url,
+                Toast.LENGTH_LONG
+            ).show()
+            AsyncTaskHandleJson().execute(url)
 
-            }
+        }
     }
 
     inner class AsyncTaskHandleJson : AsyncTask<String, String, String>() {
@@ -284,13 +288,15 @@ class MainFragment : Fragment(), OnMapReadyCallback {
                 }
 
             } catch (e: Exception) {
-                var r = Runnable { run {
-                    Toast.makeText(
-                        context,
-                        "Error getting connection",
-                        Toast.LENGTH_LONG
-                    ).show()
-                } }
+                var r = Runnable {
+                    run {
+                        Toast.makeText(
+                            context,
+                            "Error getting connection",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
 
                 uiHandler?.post(r)
             }
@@ -303,17 +309,19 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun drawRouteAndPersonCustomMarker(response: String) {
-        if(response != null && !response.isEmpty()) {
-            if(routes != null && routes.count() > 0) {
-                    var r: Runnable = Runnable { run {
-                        for(i in 0..routes.count()-1) {
+        if (response != null && !response.isEmpty()) {
+            if (routes != null && routes.count() > 0) {
+                var r: Runnable = Runnable {
+                    run {
+                        for (i in 0..routes.count() - 1) {
 
                             routes[i].remove()
-                    }
+                        }
                         routes = ArrayList();
-                    } }
+                    }
+                }
 
-                    uiHandler?.post(r)
+                uiHandler?.post(r)
             }
 
             var j = JSONObject(response)
@@ -330,7 +338,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
             var j2: JSONObject
 
-            for(i in 0..c-1) {
+            for (i in 0..c - 1) {
                 j2 = jA.getJSONObject(i)
 
                 var p: String = j2.getJSONObject("polyline").getString("points")
@@ -340,7 +348,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
             var c2 = pA.count()
 
-            for(i in 0..c2-1) {
+            for (i in 0..c2 - 1) {
                 var o2 = PolylineOptions()
 
                 o2.color(Color.BLUE)
@@ -349,27 +357,29 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
                 o2.addAll(PolyUtil.decode(pA[i]))
 
-                var r: Runnable = Runnable { run {
-                       var p = map?.addPolyline(o2);
+                var r: Runnable = Runnable {
+                    run {
+                        var p = map?.addPolyline(o2);
 
                         if (p != null) {
                             routes.add(p)
                         }
 
-                    } }
+                    }
+                }
 
                 uiHandler?.post(r)
 
             }
 
             // TODO: Get a cool sprite to get a cool user marker
-         /*   var r: Runnable = Runnable { run {
+            /*   var r: Runnable = Runnable { run {
 
-               userCustomMarker = map?.addMarker();
+                  userCustomMarker = map?.addMarker();
 
-            } }
+               } }
 
-            uiHandler?.post(r) */
+               uiHandler?.post(r) */
 
         }
 
@@ -395,6 +405,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         // TODO: utiliza um currentDataSourceIndex == 0 para saberes que ele chegou ao primeiro checkpoint
         // TODO: quando ele validar os checkpoints, chama a função showNextCheckpoint()
     }
+
     companion object {
 
         /** Tag for the [Log].  */
