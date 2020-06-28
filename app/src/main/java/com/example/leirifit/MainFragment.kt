@@ -84,7 +84,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         try {
             classifier = ImageClassifier(requireActivity())
         } catch (e: FirebaseMLException) {
-           // textView?.text = getString(R.string.fail_to_initialize_img_classifier)
+            // textView?.text = getString(R.string.fail_to_initialize_img_classifier)
         }
         textView = binding.legendTextView
         imagePreview = binding.imagePreview
@@ -154,9 +154,10 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             // Make use of FirebaseVisionImage.fromFilePath to take into account
             // Exif Orientation of the image files.
             REQUEST_IMAGE_CAPTURE -> {
-                FirebaseVisionImage.fromFilePath(requireContext(), Uri.fromFile(currentPhotoFile)).also {
-                    classifyImage(it.bitmap)
-                }
+                FirebaseVisionImage.fromFilePath(requireContext(), Uri.fromFile(currentPhotoFile))
+                    .also {
+                        classifyImage(it.bitmap)
+                    }
             }
             REQUEST_PHOTO_LIBRARY -> {
                 val selectedImageUri = data?.data ?: return
@@ -177,8 +178,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         imagePreview?.setImageBitmap(bitmap)
 
         // Classify image.
-        classifier?.classifyFrame(bitmap)?.
-        addOnCompleteListener { task ->
+        classifier?.classifyFrame(bitmap)?.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 textView?.text = task.result
             } else {
@@ -196,8 +196,8 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         handleLocationManagerCreation()
 
         mapFragment?.getMapAsync(OnMapReadyCallback {
-                onMapReady(it)
-            });
+            onMapReady(it)
+        });
     }
 
     @SuppressLint("MissingPermission")
@@ -206,22 +206,27 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
         var enable = locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
-        if(enable!!) {
-            locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0.1f, LocationListener {
-                handleLocationUpdates(it)
-            })
+        if (enable!!) {
+            locationManager?.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                5000,
+                0.1f,
+                LocationListener {
+                    handleLocationUpdates(it)
+                })
         }
     }
+
     private fun handleLocationUpdates(location: Location) {
-        if(location != null && location.latitude != null && location.longitude != null) {
+        if (location != null && location.latitude != null && location.longitude != null) {
             currentCoords = LatLng(location.latitude, location.longitude);
             routeRequest()
         }
     }
 
-   override fun onMapReady(googleMap: GoogleMap?) {
-       map = googleMap;
-       handleNextCheckpointMapMovement()
+    override fun onMapReady(googleMap: GoogleMap?) {
+        map = googleMap;
+        handleNextCheckpointMapMovement()
     }
 
     private fun showNextCheckpoint() {
@@ -266,7 +271,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             }
     }
 
-    inner class AsyncTaskHandleJson: AsyncTask<String, String, String>() {
+    inner class AsyncTaskHandleJson : AsyncTask<String, String, String>() {
         override fun doInBackground(vararg params: String?): String {
             var text: String = ""
             val conn = URL(params[0]).openConnection() as HttpURLConnection
@@ -275,7 +280,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             try {
                 conn.connect()
                 text = conn.inputStream.use {
-                    it.reader().use{reader -> reader.readText()}
+                    it.reader().use { reader -> reader.readText() }
                 }
 
             } catch (e: Exception) {
