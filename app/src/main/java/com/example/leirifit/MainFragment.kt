@@ -96,7 +96,8 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     // distance
     private var previousCoords: LatLng? = null
-    
+    private var distance: Float = 0f
+
     private var runViewModel: RunViewModel? = null;
     private var args: MainFragmentArgs? = null;
 
@@ -271,7 +272,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             locationManager?.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
                 5000,
-                5f,
+                0.1f,
                 LocationListener {
                     handleLocationUpdates(it)
                 })
@@ -281,6 +282,31 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private fun handleLocationUpdates(location: Location) {
         if (location != null && location.latitude != null && location.longitude != null) {
             currentCoords = LatLng(location.latitude, location.longitude);
+
+            //f(currentDataSourceIndex > 0) {
+            if (previousCoords != null) {
+                if (previousCoords == null) {
+                    previousCoords = currentCoords;
+                } else {
+
+                    var previousLocation: Location = Location("")
+                    previousLocation.latitude = previousCoords?.latitude!!
+                    previousLocation.longitude = previousCoords?.longitude!!
+
+                    distance += previousLocation.distanceTo(location)
+
+                    Toast.makeText(
+                        context,
+                        "distancia percorrida=" + distance.toString(),
+                        Toast.LENGTH_LONG
+                    ).show()
+
+
+                }
+                //}
+            }
+
+            previousCoords = currentCoords
 
             routeRequest()
         }
