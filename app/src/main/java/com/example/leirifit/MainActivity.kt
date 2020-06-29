@@ -34,7 +34,6 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
     }
 
 
-
     private fun allPermissionsGranted() = requiredPermissions.none { !isPermissionGranted(it) }
 
     private fun requestRuntimePermissions() {
@@ -82,12 +81,12 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         val viewModelFactory = RunViewModelFactory(dataSource, application)
         val runViewModel =
             ViewModelProviders.of(
-                this, viewModelFactory).get(RunViewModel::class.java)
+                this, viewModelFactory
+            ).get(RunViewModel::class.java)
 
 
-        //createRuns(runViewModel)
+        createRuns(runViewModel)
     }
-
 
 
     override fun onSupportNavigateUp(): Boolean {
@@ -105,7 +104,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
     private fun createRuns(runViewModel: RunViewModel) {
         var run1 = Run()
 
-        run1.endTimeMilli = System.currentTimeMillis()+8868000
+        run1.endTimeMilli = System.currentTimeMillis() + 8868000
         run1.distance = 13.11F
         run1.name = "Joana"
         run1.age = "36"
