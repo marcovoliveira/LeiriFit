@@ -1,12 +1,16 @@
 package com.example.leirifit
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
 import android.location.LocationListener
@@ -24,10 +28,17 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.DrawableRes
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.example.leirifit.databinding.FragmentMainPageBinding
+import com.example.leirifit.geofencing.GeofenceHelper
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -74,6 +85,10 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private var uiHandler: Handler? = null;
 
     // geo fencing
+    private var geofencingClient: GeofencingClient? = null;
+    private var geofenceHelper: GeofenceHelper? = null
+    private var geoFenceId = "GEO_FENCE_01";
+    private var geofence: Geofence? = null;
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -103,7 +118,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         }
 
         setupNecessaryComponentsForMap()
-
+        setupNecessaryComponentsForFencing()
 
         return binding.root
     }
@@ -117,6 +132,11 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         uiHandler = Handler(Looper.getMainLooper())
         createDataSource()
         handleMapCreation()
+    }
+
+    private fun setupNecessaryComponentsForFencing() {
+        geofencingClient = context?.let { LocationServices.getGeofencingClient(it) }
+        geofenceHelper = GeofenceHelper(context)
     }
 
 
@@ -256,17 +276,15 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     private fun handleNextCheckpointMapMovement() {
         if (currentDataSourceIndex < checkPointsDataSource.count()) {
-            Toast.makeText(
-                context,
-                "OK",
-                Toast.LENGTH_LONG
-            ).show()
+
             currentMarker =
                 map?.addMarker(MarkerOptions().position(checkPointsDataSource[currentDataSourceIndex]))
 
             map?.moveCamera(CameraUpdateFactory.newLatLng(checkPointsDataSource[currentDataSourceIndex]))
 
             map?.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
+
+            addGeofence(checkPointsDataSource[currentDataSourceIndex], 20f)
 
             routeRequest()
 
@@ -279,17 +297,11 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         if (currentCoords != null && currentMarker != null) {
 
             var url: String =
-                "https://maps.googleapis.com/maps/api/directions/json?origin=" + currentCoords!!.latitude.toString() + "," + currentCoords!!.longitude.toString() + "&destination=" + currentMarker!!.position.latitude.toString() + "," + currentMarker!!.position.longitude.toString() + "&key=" + getString(
+                "https://maps.googleapis.com/maps/api/directions/json?mode&walking&origin=" + currentCoords!!.latitude.toString() + "," + currentCoords!!.longitude.toString() + "&destination=" + currentMarker!!.position.latitude.toString() + "," + currentMarker!!.position.longitude.toString() + "&key=" + getString(
                     R.string.map_key
                 );
 
-            Toast.makeText(
-                context,
-                url,
-                Toast.LENGTH_LONG
-            ).show()
             AsyncTaskHandleJson().execute(url)
-
         }
     }
 
@@ -390,38 +402,131 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
             }
 
-            // TODO: Get a cool sprite to get a cool user marker
-            /*   var r: Runnable = Runnable { run {
+            var r: Runnable = Runnable {
+                run {
+                    userCustomMarker?.remove()
 
-                  userCustomMarker = map?.addMarker();
+                    userCustomMarker =
+                        map?.addMarker(currentCoords?.let { MarkerOptions().position(it) })
 
-               } }
+                    userCustomMarker?.setIcon(context?.let {
+                        bitmapDescriptorFromVector(
+                            it,
+                            R.drawable.custom_marker_icon
+                        )
+                    })
+                }
+            }
 
-               uiHandler?.post(r) */
+            uiHandler?.post(r)
 
         }
 
     }
 
-    private fun createDataSource() {
-        checkPointsDataSource.add(LatLng(39.746482, -8.809401));
-        checkPointsDataSource.add(LatLng(39.743068, -8.805635));
-        checkPointsDataSource.add(LatLng(39.745650, -8.803727));
-        checkPointsDataSource.add(LatLng(39.744278, -8.808344));
-        checkPointsDataSource.add(LatLng(39.746168, -8.806836));
-        checkPointsDataSource.add(LatLng(39.741834, -8.802860));
-        // var startingPointLargoCandidoReis: LatLng =  LatLng(39.751778, -8.809620);
-        checkPointsDataSource.add(LatLng(39.741347, -8.801447));
-        checkPointsDataSource.add(LatLng(39.738997, -8.799663));
-        checkPointsDataSource.add(LatLng(39.744753, -8.806314));
-        checkPointsDataSource.add(LatLng(39.743775, -8.806916));
+    private fun bitmapDescriptorFromVector(
+        context: Context,
+        @DrawableRes vectorDrawableResourceId: Int
+    ): BitmapDescriptor? {
+        val background =
+            ContextCompat.getDrawable(context, R.drawable.custom_marker_icon)
+        background!!.setBounds(0, 0, background.intrinsicWidth, background.intrinsicHeight)
+        val vectorDrawable = ContextCompat.getDrawable(context, vectorDrawableResourceId)
+        vectorDrawable!!.setBounds(
+            40,
+            20,
+            vectorDrawable.intrinsicWidth + 40,
+            vectorDrawable.intrinsicHeight + 20
+        )
+        val bitmap = Bitmap.createBitmap(
+            background.intrinsicWidth,
+            background.intrinsicHeight,
+            Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        background.draw(canvas)
+        vectorDrawable.draw(canvas)
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
-    private fun arrivedToCheckpoint() {
+
+    private fun createDataSource() {
+        // todo: DESCOMENTAR ISTO E COMENTAR A QUE VEM A SEGUIR
+        //checkPointsDataSource.add(LatLng(39.746482, -8.809401))
+        checkPointsDataSource.add(LatLng(39.727460, -8.809107))
+        checkPointsDataSource.add(LatLng(39.743068, -8.805635))
+        checkPointsDataSource.add(LatLng(39.745650, -8.803727))
+        checkPointsDataSource.add(LatLng(39.744278, -8.808344))
+        checkPointsDataSource.add(LatLng(39.746168, -8.806836))
+        checkPointsDataSource.add(LatLng(39.741834, -8.802860))
+        // var startingPointLargoCandidoReis: LatLng =  LatLng(39.751778, -8.809620)
+        checkPointsDataSource.add(LatLng(39.741347, -8.801447))
+        checkPointsDataSource.add(LatLng(39.738997, -8.799663))
+        checkPointsDataSource.add(LatLng(39.744753, -8.806314))
+        checkPointsDataSource.add(LatLng(39.743775, -8.806916))
+    }
+
+    public fun arrivedToCheckpoint() {
         // TODO: aqui colocas as funções do takephoto e o resto do modelo
         // TODO: provavelmente colocas o start nos tempos e na distância só quando ele aprovar a foto pelo modelo que está treinado
         // TODO: utiliza um currentDataSourceIndex == 0 para saberes que ele chegou ao primeiro checkpoint
         // TODO: quando ele validar os checkpoints, chama a função showNextCheckpoint()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun addGeofence(latLng: LatLng, radius: Float) {
+        geofence = geofenceHelper?.getGeofence(
+            geoFenceId,
+            latLng,
+            radius,
+            Geofence.GEOFENCE_TRANSITION_ENTER
+        )
+        var geofencingRequest = geofence?.let { geofenceHelper?.getGeofencingRequest(it) }
+
+        var pendingIntent: PendingIntent? = geofenceHelper?.getPendingIntent()
+
+
+        geofencingClient?.addGeofences(geofencingRequest, pendingIntent)
+            ?.addOnSuccessListener {
+                onSuccessGeofencingListener()
+            }
+
+            ?.addOnFailureListener {
+                onFailtureGeofencingListener(it)
+            }
+    }
+
+    private fun onSuccessGeofencingListener() {
+        var r = Runnable {
+            run {
+                Toast.makeText(
+                    context,
+                    "Geofence added",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
+        uiHandler?.post(r)
+    }
+
+    private fun onFailtureGeofencingListener(e: Exception) {
+        var errMessage: String? = geofenceHelper?.getErrorString(e)
+
+        if (errMessage != null) {
+            var r = Runnable {
+                run {
+                    Toast.makeText(
+                        context,
+                        "GEO_FENCE_ERROR:" + errMessage,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+
+            uiHandler?.post(r)
+
+        }
     }
 
     companion object {
