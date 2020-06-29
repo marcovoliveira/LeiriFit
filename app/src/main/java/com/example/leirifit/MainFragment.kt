@@ -93,6 +93,9 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private var geoFenceId = "GEO_FENCE_01";
     private var geofence: Geofence? = null;
 
+    // distance
+    private var previousCoords: LatLng? = null
+    
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -274,7 +277,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private fun handleLocationUpdates(location: Location) {
         if (location != null && location.latitude != null && location.longitude != null) {
             currentCoords = LatLng(location.latitude, location.longitude);
-            
+
             routeRequest()
         }
     }
