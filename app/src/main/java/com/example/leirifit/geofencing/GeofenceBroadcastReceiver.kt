@@ -32,7 +32,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             return
         }
 
-        var geofenceList = geofencingEvent.triggeringGeofences;
+        // var geofenceList = geofencingEvent.triggeringGeofences;
 
         // var location: Location = geofencingEvent.triggeringLocation;
 

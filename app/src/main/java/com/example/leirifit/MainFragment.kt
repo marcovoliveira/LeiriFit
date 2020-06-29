@@ -1,14 +1,11 @@
 package com.example.leirifit
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.content.Intent
-import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -29,12 +26,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.DrawableRes
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
 import com.example.leirifit.database.RunDatabase
 import com.example.leirifit.databinding.FragmentMainPageBinding
@@ -48,7 +43,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.example.leirifit.viewmodel.RunViewModel
 import com.example.leirifit.viewmodel.RunViewModelFactory
-import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import com.google.firebase.ml.common.FirebaseMLException
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
@@ -81,6 +75,9 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private var currentDataSourceIndex = 0
     private var currentMarker: Marker? = null
     private var userCustomMarker: Marker? = null
+
+    // geofencing circle
+    private var circle: Circle? = null
 
     // location
     private var locationManager: LocationManager? = null
@@ -267,7 +264,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             locationManager?.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
                 5000,
-                0.1f,
+                5f,
                 LocationListener {
                     handleLocationUpdates(it)
                 })
@@ -277,6 +274,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private fun handleLocationUpdates(location: Location) {
         if (location != null && location.latitude != null && location.longitude != null) {
             currentCoords = LatLng(location.latitude, location.longitude);
+            
             routeRequest()
         }
     }
@@ -289,6 +287,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     private fun showNextCheckpoint() {
         currentMarker?.remove()
+        circle?.remove()
         ++currentDataSourceIndex
         handleNextCheckpointMapMovement()
     }
@@ -304,6 +303,8 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             map?.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
 
             addGeofence(checkPointsDataSource[currentDataSourceIndex], 20f)
+
+            addGeofenceCircle(checkPointsDataSource[currentDataSourceIndex], 20.0)
 
             routeRequest()
 
@@ -545,6 +546,20 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             uiHandler?.post(r)
 
         }
+    }
+
+    private fun addGeofenceCircle(coords: LatLng, radius: Double) {
+
+        var circleOpt = CircleOptions()
+            .center(coords)
+            .radius(radius)
+            .strokeColor(Color.BLACK)
+            .fillColor(Color.BLUE)
+            .strokeWidth(3f)
+
+
+        circle = map?.addCircle(circleOpt)
+
     }
 
     companion object {
