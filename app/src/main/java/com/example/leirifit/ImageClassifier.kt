@@ -1,21 +1,5 @@
 package com.example.leirifit
 
-/**
- * Copyright 2019 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
@@ -35,9 +19,8 @@ import com.google.firebase.ml.vision.label.FirebaseVisionOnDeviceAutoMLImageLabe
 import java.io.IOException
 import java.util.Locale
 
-/** Classifies images with ML Kit AutoML.  */
+
 class ImageClassifier
-/** Initializes an `ImageClassifier`.  */
 @Throws(FirebaseMLException::class)
 internal constructor(context: Context) {
 
@@ -108,7 +91,10 @@ internal constructor(context: Context) {
 
         return labeler.processImage(image).continueWith { task ->
             val endTime = SystemClock.uptimeMillis()
-            Log.d(TAG, "Time to run model inference: " + java.lang.Long.toString(endTime - startTime))
+            Log.d(
+                TAG,
+                "Time to run model inference: " + java.lang.Long.toString(endTime - startTime)
+            )
 
             val labelProbList = task.result
 
@@ -148,7 +134,12 @@ internal constructor(context: Context) {
             separator = "\n",
             limit = RESULTS_TO_SHOW
         ) { label ->
-            String.format(Locale.getDefault(), "Label: %s, Confidence: %4.2f", label.text, label.confidence)
+            String.format(
+                Locale.getDefault(),
+                "Label: %s, Confidence: %4.2f",
+                label.text,
+                label.confidence
+            )
         }
     }
 
@@ -169,7 +160,7 @@ internal constructor(context: Context) {
         private const val RESULTS_TO_SHOW = 3
 
         /** Min probability to classify the given image as belong to a category.  */
-        private const val CONFIDENCE_THRESHOLD = 0.6f
+        private const val CONFIDENCE_THRESHOLD = 0.2f
     }
 }
 

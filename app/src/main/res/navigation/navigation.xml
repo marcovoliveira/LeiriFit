@@ -31,8 +31,13 @@
             app:argType="integer" />
     </fragment>
     <fragment
-        android:id="@+id/about"
+        android:id="@+id/aboutFragment"
         android:name="com.example.leirifit.AboutFragment"
-        android:label="fragment_about"
+        android:label="Sobre"
         tools:layout="@layout/fragment_about" />
+    <fragment
+        android:id="@+id/rankingFragment"
+        android:name="com.example.leirifit.RankingFragment"
+        android:label="Ranking"
+        tools:layout="@layout/fragment_ranking" />
 </navigation>

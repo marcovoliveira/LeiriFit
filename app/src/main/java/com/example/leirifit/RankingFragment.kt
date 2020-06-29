@@ -1,24 +1,22 @@
 package com.example.leirifit
 
 import android.os.Bundle
+import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.Fragment
-import com.example.leirifit.databinding.FragmentAboutBinding
+import com.example.leirifit.databinding.FragmentRankingBinding
 
-/**
- * About fragment
- */
-class AboutFragment : Fragment() {
+class RankingFragment : Fragment() {
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val binding = DataBindingUtil.inflate<FragmentAboutBinding>(
+        val binding = DataBindingUtil.inflate<FragmentRankingBinding>(
             inflater,
-            R.layout.fragment_about, container, false
+            R.layout.fragment_ranking, container, false
         )
 
         return binding.root

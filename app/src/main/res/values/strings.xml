@@ -17,4 +17,8 @@
     <string name="proxima_paragem">Proxima paragem:</string>
     <string name="iniciar">Iniciar</string>
     <string name="camera">Camera</string>
+    <string name="desenvolvido_por_marco_oliveira_e_oleksandr_gevko">Desenvolvido por Marco Oliveira e Oleksandr Gevko</string>
+    <string name="leirifit">LeiriFit</string>
+    <string name="todo">TODO</string>
+    <string name="image_leiria">Image leiria</string>
 </resources>
