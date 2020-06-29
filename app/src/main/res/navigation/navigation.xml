@@ -33,7 +33,7 @@
     <fragment
         android:id="@+id/aboutFragment"
         android:name="com.example.leirifit.AboutFragment"
-        android:label="About"
+        android:label="Sobre"
         tools:layout="@layout/fragment_about" />
     <fragment
         android:id="@+id/rankingFragment"
