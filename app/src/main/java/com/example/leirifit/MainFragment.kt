@@ -96,7 +96,8 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     // distance
     private var previousCoords: LatLng? = null
-    private var distance: Float = 0f
+    private var distanceInM: Float = 0f
+    private var distanceInKm: String? = null
 
     private var runViewModel: RunViewModel? = null;
     private var args: MainFragmentArgs? = null;
@@ -295,13 +296,11 @@ class MainFragment : Fragment(), OnMapReadyCallback {
                     previousLocation.latitude = previousCoords?.latitude!!
                     previousLocation.longitude = previousCoords?.longitude!!
 
-                    distance += previousLocation.distanceTo(location)
+                    distanceInM += previousLocation.distanceTo(location)
 
-                    Toast.makeText(
-                        context,
-                        "distancia percorrida=" + distance.toString(),
-                        Toast.LENGTH_LONG
-                    ).show()
+                    distanceInKm = "%.2f".format(distanceInM.div(1000F)).toString()
+
+
 
 
                 }
