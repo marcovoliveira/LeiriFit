@@ -4,6 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainFragment">
 
+    <data>
+        <variable
+            name="runViewModel"
+            type="com.example.leirifit.viewmodel.RunViewModel" />
+    </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/mainConstraint"
         android:layout_width="match_parent"

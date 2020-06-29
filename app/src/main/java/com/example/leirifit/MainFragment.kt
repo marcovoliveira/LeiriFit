@@ -34,6 +34,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProviders
+import com.example.leirifit.database.RunDatabase
 import com.example.leirifit.databinding.FragmentMainPageBinding
 import com.example.leirifit.geofencing.GeofenceHelper
 import com.google.android.gms.location.Geofence
@@ -43,6 +46,9 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.example.leirifit.viewmodel.RunViewModel
+import com.example.leirifit.viewmodel.RunViewModelFactory
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import com.google.firebase.ml.common.FirebaseMLException
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
@@ -119,6 +125,19 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
         setupNecessaryComponentsForMap()
         setupNecessaryComponentsForFencing()
+
+        // viewModel
+        val application = requireNotNull(this.activity).application
+        val dataSource = RunDatabase.getInstance(application).runDatabaseDao
+        val viewModelFactory = RunViewModelFactory(dataSource, application)
+        val runViewModel =
+            ViewModelProviders.of(
+                this, viewModelFactory).get(RunViewModel::class.java)
+
+        binding.setLifecycleOwner(this)
+        binding.runViewModel = runViewModel
+
+
 
         return binding.root
     }
@@ -452,8 +471,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     private fun createDataSource() {
         // todo: DESCOMENTAR ISTO E COMENTAR A QUE VEM A SEGUIR
-        //checkPointsDataSource.add(LatLng(39.746482, -8.809401))
-        checkPointsDataSource.add(LatLng(39.727460, -8.809107))
+        checkPointsDataSource.add(LatLng(39.746482, -8.809401))
         checkPointsDataSource.add(LatLng(39.743068, -8.805635))
         checkPointsDataSource.add(LatLng(39.745650, -8.803727))
         checkPointsDataSource.add(LatLng(39.744278, -8.808344))

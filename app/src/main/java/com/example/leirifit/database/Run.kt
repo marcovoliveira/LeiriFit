@@ -17,5 +17,15 @@ data class Run(
     var endTimeMilli: Long = startTimeMilli,
 
     @ColumnInfo(name = "distance")
-    var distance: Float = 0F
+    var distance: Float = 0F,
+
+    @ColumnInfo(name = "name")
+    var name: String = "",
+
+    @ColumnInfo(name = "age")
+    var age: String = "",
+
+    @ColumnInfo(name = "sexo")
+    var sexo: String = ""
+
 )
