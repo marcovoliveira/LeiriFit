@@ -27,11 +27,17 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProviders
+import com.example.leirifit.database.RunDatabase
 import com.example.leirifit.databinding.FragmentMainPageBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.example.leirifit.viewmodel.RunViewModel
+import com.example.leirifit.viewmodel.RunViewModelFactory
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import com.google.firebase.ml.common.FirebaseMLException
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
@@ -103,6 +109,21 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         }
 
         setupNecessaryComponentsForMap()
+        // viewModel
+        val application = requireNotNull(this.activity).application
+        val dataSource = RunDatabase.getInstance(application).runDatabaseDao
+        val viewModelFactory = RunViewModelFactory(dataSource, application)
+        val runViewModel =
+            ViewModelProviders.of(
+                this, viewModelFactory).get(RunViewModel::class.java)
+
+        binding.setLifecycleOwner(this)
+        binding.runViewModel = runViewModel
+
+        // map
+        uiHandler = Handler(Looper.getMainLooper())
+        createDataSource()
+        handleMapCreation()
 
 
         return binding.root

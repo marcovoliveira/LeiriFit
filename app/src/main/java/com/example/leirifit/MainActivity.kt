@@ -3,14 +3,18 @@ package com.example.leirifit
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI
+import com.example.leirifit.database.Run
+import com.example.leirifit.database.RunDatabase
 import com.example.leirifit.databinding.ActivityMainBinding
+import com.example.leirifit.viewmodel.RunViewModel
+import com.example.leirifit.viewmodel.RunViewModelFactory
 
 /**
  * Main activity binding, nav and fragments setup
@@ -28,6 +32,8 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
             arrayOf<String>()
         }
     }
+
+
 
     private fun allPermissionsGranted() = requiredPermissions.none { !isPermissionGranted(it) }
 
@@ -71,7 +77,18 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
             requestRuntimePermissions()
         }
 
+        val application = requireNotNull(this).application
+        val dataSource = RunDatabase.getInstance(application).runDatabaseDao
+        val viewModelFactory = RunViewModelFactory(dataSource, application)
+        val runViewModel =
+            ViewModelProviders.of(
+                this, viewModelFactory).get(RunViewModel::class.java)
+
+
+        //createRuns(runViewModel)
     }
+
+
 
     override fun onSupportNavigateUp(): Boolean {
         val navController = this.findNavController(R.id.myNavHostFragment)
@@ -81,6 +98,19 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
     companion object {
 
         private const val PERMISSION_REQUESTS = 1
+
+    }
+
+
+    private fun createRuns(runViewModel: RunViewModel) {
+        var run1 = Run()
+
+        run1.endTimeMilli = System.currentTimeMillis()+8868000
+        run1.distance = 13.11F
+        run1.name = "Joana"
+        run1.age = "36"
+        run1.sexo = "Feminino"
+        runViewModel.insertRun(run1)
 
     }
 }

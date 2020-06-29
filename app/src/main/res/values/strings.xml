@@ -6,7 +6,6 @@
     <string name="name">Nome</string>
     <string name="nodData"><u>Não quero dar os meus dados nem aparecer no ranking</u>.</string>
     <string name="start">Iniciar</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="tempo">Tempo</string>
     <string name="distancia">Distancia</string>
@@ -21,4 +20,18 @@
     <string name="leirifit">LeiriFit</string>
     <string name="todo">TODO</string>
     <string name="image_leiria">Image leiria</string>
+
+
+    <string name="title"><![CDATA[<h3>HERE IS YOUR SLEEP DATA</h3>]]></string>
+    <string name="start_time"><![CDATA[<b>Inicio:</b>]]></string>
+    <string name="end_time"><![CDATA[<b>Fim:</b>]]></string>
+    <string name="distance"><![CDATA[<b>Distancia:</b>]]></string>
+    <string name="hours_run"><![CDATA[<b>Horas:Minutos:Segundos</b>]]></string>
+    <string name="name_list"><![CDATA[<b>Nome:</b>]]></string>
+    <string name="age_list"><![CDATA[<b>Idade:</b>]]></string>
+    <string name="sex_list"><![CDATA[<b>Genero:</b>]]></string>
+
+
+
+
 </resources>
