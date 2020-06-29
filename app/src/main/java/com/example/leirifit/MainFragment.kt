@@ -68,6 +68,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private var textView: TextView? = null
     private var chronometer: Chronometer? = null
     private var running: Boolean = false
+    private var distanceValueTextView: TextView? = null
 
     // maps
     private var map: GoogleMap? = null
@@ -125,6 +126,8 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             // textView?.text = getString(R.string.fail_to_initialize_img_classifier)
         }
         textView = binding.legendTextView
+        distanceValueTextView = binding.distanceValueTextView
+
         imagePreview = binding.imagePreview
         chronometer = binding.timeValueChronometer
         binding.cameraImageButton.setOnClickListener {
@@ -287,24 +290,18 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             currentCoords = LatLng(location.latitude, location.longitude);
 
             //f(currentDataSourceIndex > 0) {
-            if (previousCoords != null) {
-                if (previousCoords == null) {
-                    previousCoords = currentCoords;
-                } else {
+            if (previousCoords != null && currentDataSourceIndex > 0) {
 
-                    var previousLocation: Location = Location("")
-                    previousLocation.latitude = previousCoords?.latitude!!
-                    previousLocation.longitude = previousCoords?.longitude!!
+                var previousLocation: Location = Location("")
+                previousLocation.latitude = previousCoords?.latitude!!
+                previousLocation.longitude = previousCoords?.longitude!!
 
-                    distanceInM += previousLocation.distanceTo(location)
+                distanceInM += previousLocation.distanceTo(location)
 
-                    distanceInKm = "%.2f".format(distanceInM.div(1000F)).toString()
+                distanceInKm = "%.2f".format(distanceInM.div(1000F)).toString()
 
+                distanceValueTextView?.text = distanceInKm
 
-
-
-                }
-                //}
             }
 
             previousCoords = currentCoords
