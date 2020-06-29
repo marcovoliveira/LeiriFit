@@ -2,8 +2,10 @@ package com.example.leirifit
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.PendingIntent
 import android.content.Context.LOCATION_SERVICE
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.location.Location
@@ -16,7 +18,9 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -24,7 +28,10 @@ import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.example.leirifit.databinding.FragmentMainPageBinding
-import com.google.android.gms.maps.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.firebase.ml.common.FirebaseMLException
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
@@ -42,6 +49,7 @@ import kotlin.collections.ArrayList
 /**
  * Run page fragment
  */
+
 class MainFragment : Fragment(), OnMapReadyCallback {
 
     private var currentPhotoFile: File? = null
@@ -64,6 +72,9 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     // thread handling
     private var uiHandler: Handler? = null;
+
+    // geo fencing
+
 
             override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -88,12 +99,11 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         }
         textView = binding.legendTextView
         imagePreview = binding.imagePreview
-        binding.cameraImageButton.setOnClickListener { takePhoto() }
+        binding.cameraImageButton.setOnClickListener {
+            takePhoto()
+        }
 
-                // map
-                uiHandler = Handler(Looper.getMainLooper())
-                createDataSource()
-                handleMapCreation()
+                setupNecessaryComponentsForMap()
 
         return binding.root
     }
@@ -102,6 +112,14 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         classifier?.close()
         super<Fragment>.onDestroy()
     }
+
+    private fun setupNecessaryComponentsForMap() {
+        uiHandler = Handler(Looper.getMainLooper())
+        createDataSource()
+        handleMapCreation()
+    }
+
+
 
     private fun takePhoto() {
         Log.e(TAG, "Start take photo function")
