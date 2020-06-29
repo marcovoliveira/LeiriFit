@@ -31,6 +31,7 @@ import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import com.example.leirifit.database.Run
 import com.example.leirifit.database.RunDatabase
 import com.example.leirifit.databinding.FragmentMainPageBinding
 import com.example.leirifit.geofencing.GeofenceHelper
@@ -93,6 +94,10 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private var geoFenceId = "GEO_FENCE_01";
     private var geofence: Geofence? = null;
 
+    private var runViewModel: RunViewModel? = null;
+    private var args: MainFragmentArgs? = null;
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -102,10 +107,10 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             inflater,
             R.layout.fragment_main_page, container, false
         )
-        val args = MainFragmentArgs.fromBundle(arguments!!)
+        args = MainFragmentArgs.fromBundle(arguments!!)
         Toast.makeText(
             context,
-            "Name: ${args.participantName}, Idade: ${args.age}, Sexo: ${args.sex}",
+            "Name: ${args!!.participantName}, Idade: ${args!!.age}, Sexo: ${args!!.sex}",
             Toast.LENGTH_LONG
         ).show()
 
@@ -127,14 +132,13 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         val application = requireNotNull(this.activity).application
         val dataSource = RunDatabase.getInstance(application).runDatabaseDao
         val viewModelFactory = RunViewModelFactory(dataSource, application)
-        val runViewModel =
+        runViewModel =
             ViewModelProviders.of(
-                this, viewModelFactory).get(RunViewModel::class.java)
+                this, viewModelFactory
+            ).get(RunViewModel::class.java)
 
         binding.setLifecycleOwner(this)
         binding.runViewModel = runViewModel
-
-
 
         return binding.root
     }
@@ -281,6 +285,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap?) {
         map = googleMap;
+
         // TODO: em vez de chamar este metodo aqui, chamar no click do botão "INICIAR"
         handleNextCheckpointMapMovement()
     }
@@ -310,6 +315,21 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
         } else if (currentDataSourceIndex + 1 == checkPointsDataSource.count()) {
             // TODO: significa que terminou o percurso - mostrar estatísticas/mensagem de ganho
+            var run = Run();
+            run.age = args?.age.toString()
+            run.name = args?.participantName.toString()
+            if (args?.sex == 0) {
+                run.sexo = "Masculino"
+            } else {
+                run.sexo = "Feminino"
+            }
+            //run.distance =
+            //run.endTimeMilli
+            //run.startTimeMilli
+
+
+            runViewModel?.insertRun(run)
+
         }
     }
 
