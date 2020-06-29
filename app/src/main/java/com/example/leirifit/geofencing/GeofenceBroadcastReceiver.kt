@@ -3,7 +3,6 @@ package com.example.leirifit.geofencing
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.location.Location
 import android.widget.Toast
 import com.example.leirifit.MainFragment
 import com.google.android.gms.location.Geofence
@@ -22,7 +21,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
         var geofencingEvent: GeofencingEvent = GeofencingEvent.fromIntent(intent)
 
-        if(geofencingEvent.hasError()) {
+        if (geofencingEvent.hasError()) {
             Toast.makeText(
                 context,
                 "Geofence error: on receive",
@@ -38,14 +37,16 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
         var transitionType = geofencingEvent.geofenceTransition
 
-        if(transitionType == Geofence.GEOFENCE_TRANSITION_ENTER) {
+        if (transitionType == Geofence.GEOFENCE_TRANSITION_ENTER) {
             Toast.makeText(
                 context,
                 "Geofence_transition_enter",
                 Toast.LENGTH_LONG
             ).show()
 
-            // TODO: chamar aqui esta função: arrivedToCheckpoint()
+            // val intent = Intent(context, MainFragment::class.java)
+            // intent.putExtra("fence", "xpto")
+
         }
     }
 }

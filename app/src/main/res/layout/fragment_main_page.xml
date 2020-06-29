@@ -5,6 +5,7 @@
     tools:context=".MainFragment">
 
     <data>
+
         <variable
             name="runViewModel"
             type="com.example.leirifit.viewmodel.RunViewModel" />
@@ -79,8 +80,8 @@
             app:layout_constraintBottom_toTopOf="@+id/nextStopValueTextView"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <TextView
-            android:id="@+id/timeValueTextView"
+        <Chronometer
+            android:id="@+id/timeValueChronometer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -137,7 +138,7 @@
             android:text="@string/jardim_lu_s_de_cam_es"
             android:textSize="25sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/timeValueTextView" />
+            app:layout_constraintTop_toBottomOf="@+id/timeValueChronometer" />
 
         <Button
             android:id="@+id/startStopButton"
@@ -161,7 +162,7 @@
             android:layout_marginRight="8dp"
             android:src="@android:drawable/ic_menu_gallery"
             app:layout_constraintEnd_toStartOf="@+id/distanceValueTextView"
-            app:layout_constraintStart_toEndOf="@+id/timeValueTextView"
+            app:layout_constraintStart_toEndOf="@+id/timeValueChronometer"
             app:layout_constraintTop_toBottomOf="@+id/mapView" />
 
         <TextView

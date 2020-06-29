@@ -29,7 +29,8 @@ class RankingFragment : Fragment() {
         val viewModelFactory = RunViewModelFactory(dataSource, application)
         val runViewModel =
             ViewModelProviders.of(
-                this, viewModelFactory).get(RunViewModel::class.java)
+                this, viewModelFactory
+            ).get(RunViewModel::class.java)
 
         binding.setLifecycleOwner(this)
         binding.runViewModel = runViewModel

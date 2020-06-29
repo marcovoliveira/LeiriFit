@@ -13,15 +13,13 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
-import android.os.AsyncTask
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Chronometer
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -68,6 +66,8 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private var classifier: ImageClassifier? = null
     private var imagePreview: ImageView? = null
     private var textView: TextView? = null
+    private var chronometer: Chronometer? = null
+    private var running: Boolean = false
 
     // maps
     private var map: GoogleMap? = null
@@ -125,6 +125,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         }
         textView = binding.legendTextView
         imagePreview = binding.imagePreview
+        chronometer = binding.timeValueChronometer
         binding.cameraImageButton.setOnClickListener {
             takePhoto()
         }
@@ -143,6 +144,8 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
         binding.setLifecycleOwner(this)
         binding.runViewModel = runViewModel
+
+        startChronometer();
 
         return binding.root
     }
@@ -189,7 +192,6 @@ class MainFragment : Fragment(), OnMapReadyCallback {
                 }
             }
         }
-
     }
 
     /** Create a file to pass to camera app */
@@ -366,7 +368,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         if (currentCoords != null && currentMarker != null) {
 
             var url: String =
-                "https://maps.googleapis.com/maps/api/directions/json?mode&walking&origin=" + currentCoords!!.latitude.toString() + "," + currentCoords!!.longitude.toString() + "&destination=" + currentMarker!!.position.latitude.toString() + "," + currentMarker!!.position.longitude.toString() + "&key=" + getString(
+                "https://maps.googleapis.com/maps/api/directions/json?mode=walking&origin=" + currentCoords!!.latitude.toString() + "," + currentCoords!!.longitude.toString() + "&destination=" + currentMarker!!.position.latitude.toString() + "," + currentMarker!!.position.longitude.toString() + "&key=" + getString(
                     R.string.map_key
                 );
 
@@ -610,6 +612,21 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         circle = map?.addCircle(circleOpt)
 
     }
+
+    fun startChronometer() {
+        if (!running) {
+            chronometer?.start()
+            running = true;
+        }
+    }
+
+    fun stopChronometer() {
+        if (running) {
+            chronometer?.stop()
+            running = false;
+        }
+    }
+
 
     companion object {
 
