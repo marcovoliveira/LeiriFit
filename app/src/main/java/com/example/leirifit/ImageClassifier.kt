@@ -104,16 +104,11 @@ internal constructor(context: Context) {
             // addition, since model download failures can be transient, and model download can also be
             // triggered in the background during inference, it is possible that a remote model is used
             // even if the first download fails.
-            var textToShow = "Source: " +
-                    (if (this.remoteModelDownloadSucceeded) "Remote" else "Local") +
-                    " model\n"
-            textToShow += "Latency: " + java.lang.Long.toString(endTime - startTime) + "ms\n"
-            textToShow += if (labelProbList.isNullOrEmpty())
+            var textToShow = if (labelProbList.isNullOrEmpty())
                 "No Result"
             else
                 printTopKLabels(labelProbList)
 
-            // print the results
             textToShow
         }
     }
@@ -135,10 +130,7 @@ internal constructor(context: Context) {
             limit = RESULTS_TO_SHOW
         ) { label ->
             String.format(
-                Locale.getDefault(),
-                "Label: %s, Confidence: %4.2f",
-                label.text,
-                label.confidence
+                label.text
             )
         }
     }
@@ -157,7 +149,7 @@ internal constructor(context: Context) {
         private const val REMOTE_MODEL_NAME = "leiria_fit_model"
 
         /** Number of results to show in the UI.  */
-        private const val RESULTS_TO_SHOW = 3
+        private const val RESULTS_TO_SHOW = 1
 
         /** Min probability to classify the given image as belong to a category.  */
         private const val CONFIDENCE_THRESHOLD = 0.2f

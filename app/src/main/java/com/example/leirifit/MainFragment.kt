@@ -24,10 +24,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Chronometer
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -38,6 +35,7 @@ import androidx.lifecycle.ViewModelProviders
 import com.example.leirifit.database.Run
 import com.example.leirifit.database.RunDatabase
 import com.example.leirifit.databinding.FragmentMainPageBinding
+import com.example.leirifit.datamodel.CheckpointModel
 import com.example.leirifit.geofencing.GeofenceBroadcastReceiver
 import com.example.leirifit.geofencing.GeofenceHelper
 import com.example.leirifit.viewmodel.RunViewModel
@@ -76,11 +74,13 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private var chronometer: Chronometer? = null
     private var running: Boolean = false
     private var distanceValueTextView: TextView? = null
+    private var nextCheckpointValueTextView: TextView? = null
+    private var takePhotoButton: ImageButton? = null
 
     // maps
     private var map: GoogleMap? = null
     private var mapFragment: SupportMapFragment? = null
-    private var checkPointsDataSource = ArrayList<LatLng>()
+    private var checkPointsDataSource = ArrayList<CheckpointModel>()
     private var currentDataSourceIndex = 0
     private var currentMarker: Marker? = null
     private var userCustomMarker: Marker? = null
@@ -132,8 +132,12 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         } catch (e: FirebaseMLException) {
             // textView?.text = getString(R.string.fail_to_initialize_img_classifier)
         }
+        // get the bindings
         textView = binding.legendTextView
         distanceValueTextView = binding.distanceValueTextView
+        nextCheckpointValueTextView = binding.nextStopValueTextView
+        takePhotoButton = binding.cameraImageButton
+        takePhotoButton?.isEnabled = false
 
         imagePreview = binding.imagePreview
         chronometer = binding.timeValueChronometer
@@ -179,6 +183,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
+            takePhotoButton?.isEnabled = true
             takePhoto()
             if (currentDataSourceIndex == 0) {
                 startChronometer();
@@ -286,13 +291,13 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun validarImagem(result: String?) {
-        showNextCheckpoint()
-        /*if(result == checkPointsDataSource[currentDataSourceIndex].name){
+        if(result == checkPointsDataSource[currentDataSourceIndex].name){
+            takePhotoButton?.isEnabled = false;
            showNextCheckpoint()
         } else {
-            Toast.makeText(activity, "Imagem errada", Toast.LENGHT).show()
+            Toast.makeText(activity, "Imagem errada", Toast.LENGTH_LONG).show()
         }
-         */
+
     }
 
     private fun handleMapCreation() {
@@ -328,7 +333,6 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         if (location != null && location.latitude != null && location.longitude != null) {
             currentCoords = LatLng(location.latitude, location.longitude);
 
-            //f(currentDataSourceIndex > 0) {
             if (previousCoords != null && running) {
 
                 var previousLocation: Location = Location("")
@@ -365,16 +369,22 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
             circle?.remove()
 
-            currentMarker =
-                map?.addMarker(MarkerOptions().position(checkPointsDataSource[currentDataSourceIndex]))
+            nextCheckpointValueTextView?.text = checkPointsDataSource[currentDataSourceIndex].nextCp
 
-            map?.moveCamera(CameraUpdateFactory.newLatLng(checkPointsDataSource[currentDataSourceIndex]))
+            currentMarker =
+                map?.addMarker(checkPointsDataSource[currentDataSourceIndex].coords?.let {
+                    MarkerOptions().position(
+                        it
+                    )
+                })
+
+            map?.moveCamera(CameraUpdateFactory.newLatLng(checkPointsDataSource[currentDataSourceIndex].coords))
 
             map?.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
 
-            addGeofence(checkPointsDataSource[currentDataSourceIndex], 40f)
+            checkPointsDataSource[currentDataSourceIndex].coords?.let { addGeofence(it, 40f) }
 
-            addGeofenceCircle(checkPointsDataSource[currentDataSourceIndex], 40.0)
+            checkPointsDataSource[currentDataSourceIndex].coords?.let { addGeofenceCircle(it, 40.0) }
 
             routeRequest()
 
@@ -556,17 +566,19 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
 
     private fun createDataSource() {
-        checkPointsDataSource.add(LatLng(39.746482, -8.809401))
-        checkPointsDataSource.add(LatLng(39.743068, -8.805635))
-        checkPointsDataSource.add(LatLng(39.745650, -8.803727))
-        checkPointsDataSource.add(LatLng(39.744278, -8.808344))
-        checkPointsDataSource.add(LatLng(39.746168, -8.806836))
-        checkPointsDataSource.add(LatLng(39.741834, -8.802860))
-        checkPointsDataSource.add(LatLng(39.744464, -8.809540))
-        checkPointsDataSource.add(LatLng(39.741347, -8.801447))
-        checkPointsDataSource.add(LatLng(39.738997, -8.799663))
-        checkPointsDataSource.add(LatLng(39.744753, -8.806314))
-        checkPointsDataSource.add(LatLng(39.743775, -8.806916))
+        checkPointsDataSource.add(CheckpointModel("SeilA", LatLng(39.734171, -8.791882), "LA SEI"))
+        //checkPointsDataSource.add(CheckpointModel("miradouro_ernesto", LatLng(39.746482, -8.809401), "Miradouro Ernesto Korrodi"))
+        checkPointsDataSource.add(CheckpointModel("fonte_tres_bicas", LatLng(39.743068, -8.805635),"Fonte das três bicas"))
+        checkPointsDataSource.add(CheckpointModel("parque_aviao", LatLng(39.745650, -8.803727),"Parque do avião" ))
+        checkPointsDataSource.add(CheckpointModel("afonso_lopes_vieira", LatLng(39.744278, -8.808344), "Estátua Afonso Lopes Vieira"))
+        //checkPointsDataSource.add(CheckpointModel("se_leiria", LatLng(39.746168, -8.806836), "Sé de Leiria"))
+        //checkPointsDataSource.add(CheckpointModel("mimo", LatLng(39.747533, -8.807219), "Museu da imagem e do movimento" ))
+        checkPointsDataSource.add(CheckpointModel("museu_leiria", LatLng(39.741834, -8.802860),"Museu de Leiria" ))
+        checkPointsDataSource.add(CheckpointModel("largo_candido_reis", LatLng(39.744464, -8.809540), "Largo Candido Reis (Terreiro)"))
+        checkPointsDataSource.add(CheckpointModel("jardim_santo_agostinho", LatLng(39.741347, -8.801447), "Jardim Santo Agostinho"))
+        checkPointsDataSource.add(CheckpointModel("encarnacao", LatLng(39.738997, -8.799663),"Capela da Nossa Senhora da Encarnação" ))
+        checkPointsDataSource.add(CheckpointModel("jardim_luis_camoes", LatLng(39.744753, -8.806314),"Jardim Luis de Camões" ))
+        checkPointsDataSource.add(CheckpointModel("fonte_luminosa", LatLng(39.743775, -8.806916),"Fonte Luminosa"))
     }
 
 
