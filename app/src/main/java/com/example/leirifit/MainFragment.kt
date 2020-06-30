@@ -399,7 +399,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             routeRequest()
 
         } else if (currentDataSourceIndex + 1 == checkPointsDataSource.count()) {
-
+            stopChronometer()
             var run = Run();
             run.age = args?.age.toString()
             run.name = args?.participantName.toString()
@@ -576,7 +576,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
 
     private fun createDataSource() {
-        //  checkPointsDataSource.add(CheckpointModel("SeilA", LatLng(39.734144, -8.791863), "LA SEI"))
+        //checkPointsDataSource.add(CheckpointModel("SeilA", LatLng(39.734144, -8.791863), "LA SEI"))
         //checkPointsDataSource.add(CheckpointModel("miradouro_ernesto", LatLng(39.746482, -8.809401), "Miradouro Ernesto Korrodi"))
         checkPointsDataSource.add(
             CheckpointModel(
