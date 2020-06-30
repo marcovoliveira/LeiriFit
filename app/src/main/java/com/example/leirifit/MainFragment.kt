@@ -400,7 +400,8 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
         } else if (currentDataSourceIndex == checkPointsDataSource.count()) {
             stopChronometer()
-            Toast.makeText(context, "Parabéns!!! Percurso concluido com sucesso", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Parabéns!!! Percurso concluido com sucesso", Toast.LENGTH_LONG)
+                .show()
             var run = Run();
             run.age = args?.age.toString()
             run.name = args?.participantName.toString()
@@ -574,9 +575,14 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
 
     private fun createDataSource() {
-        //checkPointsDataSource.add(CheckpointModel("SeilA", LatLng(39.734144, -8.791863), "LA SEI"))
-        //checkPointsDataSource.add(CheckpointModel("miradouro_ernesto", LatLng(39.746482, -8.809401), "Miradouro Ernesto Korrodi"))
-        /*checkPointsDataSource.add(
+        checkPointsDataSource.add(
+            CheckpointModel(
+                "miradouro_ernesto",
+                LatLng(39.746482, -8.809401),
+                "Miradouro Ernesto Korrodi"
+            )
+        )
+        checkPointsDataSource.add(
             CheckpointModel(
                 "fonte_tres_bicas",
                 LatLng(39.743068, -8.805635),
@@ -597,8 +603,20 @@ class MainFragment : Fragment(), OnMapReadyCallback {
                 "Estátua Afonso Lopes Vieira"
             )
         )
-        //checkPointsDataSource.add(CheckpointModel("se_leiria", LatLng(39.746168, -8.806836), "Sé de Leiria"))
-        //checkPointsDataSource.add(CheckpointModel("mimo", LatLng(39.747533, -8.807219), "Museu da imagem e do movimento" ))
+        checkPointsDataSource.add(
+            CheckpointModel(
+                "se_leiria",
+                LatLng(39.746168, -8.806836),
+                "Sé de Leiria"
+            )
+        )
+        checkPointsDataSource.add(
+            CheckpointModel(
+                "mimo",
+                LatLng(39.747533, -8.807219),
+                "Museu da imagem e do movimento"
+            )
+        )
         checkPointsDataSource.add(
             CheckpointModel(
                 "museu_leiria",
@@ -634,7 +652,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
                 "Jardim Luis de Camões"
             )
         )
-        */
+        
 
         checkPointsDataSource.add(
             CheckpointModel(
