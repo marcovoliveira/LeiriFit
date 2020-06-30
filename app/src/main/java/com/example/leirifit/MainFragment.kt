@@ -76,6 +76,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private var distanceValueTextView: TextView? = null
     private var nextCheckpointValueTextView: TextView? = null
     private var takePhotoButton: ImageButton? = null
+    private var startButton: Button? = null
 
     // maps
     private var map: GoogleMap? = null
@@ -138,6 +139,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         nextCheckpointValueTextView = binding.nextStopValueTextView
         takePhotoButton = binding.cameraImageButton
         takePhotoButton?.isEnabled = false
+        startButton = binding.startStopButton
 
         imagePreview = binding.imagePreview
         chronometer = binding.timeValueChronometer
@@ -145,7 +147,9 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             takePhoto()
         }
 
-        binding.startStopButton.setOnClickListener { handleNextCheckpointMapMovement() }
+        binding.startStopButton.setOnClickListener {
+            startButton?.isEnabled = false; handleNextCheckpointMapMovement()
+        }
 
 
         setupNecessaryComponentsForMap()
@@ -183,6 +187,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
+
             takePhotoButton?.isEnabled = true
             takePhoto()
             if (currentDataSourceIndex == 0) {
@@ -291,9 +296,9 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun validarImagem(result: String?) {
-        if(result == checkPointsDataSource[currentDataSourceIndex].name){
+        if (result == checkPointsDataSource[currentDataSourceIndex].name) {
             takePhotoButton?.isEnabled = false;
-           showNextCheckpoint()
+            showNextCheckpoint()
         } else {
             Toast.makeText(activity, "Imagem errada", Toast.LENGTH_LONG).show()
         }
@@ -382,9 +387,14 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
             map?.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
 
-            checkPointsDataSource[currentDataSourceIndex].coords?.let { addGeofence(it, 40f) }
+            checkPointsDataSource[currentDataSourceIndex].coords?.let { addGeofence(it, 70f) }
 
-            checkPointsDataSource[currentDataSourceIndex].coords?.let { addGeofenceCircle(it, 40.0) }
+            checkPointsDataSource[currentDataSourceIndex].coords?.let {
+                addGeofenceCircle(
+                    it,
+                    70.0
+                )
+            }
 
             routeRequest()
 
@@ -566,19 +576,73 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
 
     private fun createDataSource() {
-        checkPointsDataSource.add(CheckpointModel("SeilA", LatLng(39.734171, -8.791882), "LA SEI"))
+        //  checkPointsDataSource.add(CheckpointModel("SeilA", LatLng(39.734144, -8.791863), "LA SEI"))
         //checkPointsDataSource.add(CheckpointModel("miradouro_ernesto", LatLng(39.746482, -8.809401), "Miradouro Ernesto Korrodi"))
-        checkPointsDataSource.add(CheckpointModel("fonte_tres_bicas", LatLng(39.743068, -8.805635),"Fonte das três bicas"))
-        checkPointsDataSource.add(CheckpointModel("parque_aviao", LatLng(39.745650, -8.803727),"Parque do avião" ))
-        checkPointsDataSource.add(CheckpointModel("afonso_lopes_vieira", LatLng(39.744278, -8.808344), "Estátua Afonso Lopes Vieira"))
+        checkPointsDataSource.add(
+            CheckpointModel(
+                "fonte_tres_bicas",
+                LatLng(39.743068, -8.805635),
+                "Fonte das três bicas"
+            )
+        )
+        checkPointsDataSource.add(
+            CheckpointModel(
+                "parque_aviao",
+                LatLng(39.745650, -8.803727),
+                "Parque do avião"
+            )
+        )
+        checkPointsDataSource.add(
+            CheckpointModel(
+                "afonso_lopes_vieira",
+                LatLng(39.744278, -8.808344),
+                "Estátua Afonso Lopes Vieira"
+            )
+        )
         //checkPointsDataSource.add(CheckpointModel("se_leiria", LatLng(39.746168, -8.806836), "Sé de Leiria"))
         //checkPointsDataSource.add(CheckpointModel("mimo", LatLng(39.747533, -8.807219), "Museu da imagem e do movimento" ))
-        checkPointsDataSource.add(CheckpointModel("museu_leiria", LatLng(39.741834, -8.802860),"Museu de Leiria" ))
-        checkPointsDataSource.add(CheckpointModel("largo_candido_reis", LatLng(39.744464, -8.809540), "Largo Candido Reis (Terreiro)"))
-        checkPointsDataSource.add(CheckpointModel("jardim_santo_agostinho", LatLng(39.741347, -8.801447), "Jardim Santo Agostinho"))
-        checkPointsDataSource.add(CheckpointModel("encarnacao", LatLng(39.738997, -8.799663),"Capela da Nossa Senhora da Encarnação" ))
-        checkPointsDataSource.add(CheckpointModel("jardim_luis_camoes", LatLng(39.744753, -8.806314),"Jardim Luis de Camões" ))
-        checkPointsDataSource.add(CheckpointModel("fonte_luminosa", LatLng(39.743775, -8.806916),"Fonte Luminosa"))
+        checkPointsDataSource.add(
+            CheckpointModel(
+                "museu_leiria",
+                LatLng(39.741834, -8.802860),
+                "Museu de Leiria"
+            )
+        )
+        checkPointsDataSource.add(
+            CheckpointModel(
+                "largo_candido_reis",
+                LatLng(39.744464, -8.809540),
+                "Largo Candido Reis (Terreiro)"
+            )
+        )
+        checkPointsDataSource.add(
+            CheckpointModel(
+                "jardim_santo_agostinho",
+                LatLng(39.741347, -8.801447),
+                "Jardim Santo Agostinho"
+            )
+        )
+        checkPointsDataSource.add(
+            CheckpointModel(
+                "encarnacao",
+                LatLng(39.738997, -8.799663),
+                "Capela da Nossa Senhora da Encarnação"
+            )
+        )
+        checkPointsDataSource.add(
+            CheckpointModel(
+                "jardim_luis_camoes",
+                LatLng(39.744753, -8.806314),
+                "Jardim Luis de Camões"
+            )
+        )
+        checkPointsDataSource.add(
+            CheckpointModel(
+                "fonte_luminosa",
+                LatLng(39.743775, -8.806916),
+                "Fonte Luminosa"
+            )
+        )
     }
 
 
@@ -590,10 +654,10 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             radius,
             Geofence.GEOFENCE_TRANSITION_ENTER
         )
+
         var geofencingRequest = geofence?.let { geofenceHelper?.getGeofencingRequest(it) }
 
         var pendingIntent: PendingIntent? = geofenceHelper?.getPendingIntent()
-
 
         geofencingClient?.addGeofences(geofencingRequest, pendingIntent)
             ?.addOnSuccessListener {
