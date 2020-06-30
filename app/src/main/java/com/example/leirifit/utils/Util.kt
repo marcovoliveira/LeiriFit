@@ -29,22 +29,16 @@ fun formatRuns(runs: List<Run>, resources: Resources): Spanned {
             append("\t${it.age}<br>")
             append(resources.getString(R.string.sex_list))
             append("\t${it.sexo}<br>")
-            append(resources.getString(R.string.start_time))
-            append("\t${convertLongToDateString(it.startTimeMilli)}<br>")
-            if (it.endTimeMilli != it.startTimeMilli) {
-                append(resources.getString(R.string.end_time))
-                append("\t${convertLongToDateString(it.endTimeMilli)}<br>")
-                append(resources.getString(R.string.distance))
-                append("\t${it.distance} Km. <br>")
-                append(resources.getString(R.string.hours_run))
-                // Hours
-                append("\t ${it.endTimeMilli.minus(it.startTimeMilli) / 1000 / 60 / 60}:")
-                // Minutes
-                append("${(it.endTimeMilli.minus(it.startTimeMilli) / 1000) / 60 % 60}:")
-                // Seconds
-                append("${it.endTimeMilli.minus(it.startTimeMilli) / 1000 % 60}<br><br>")
+            append(resources.getString(R.string.distance))
+            append("\t${it.distance} Km. <br>")
+            append(resources.getString(R.string.hours_run))
+            // Hours
+            append("\t ${it.duration / 1000 / 60 / 60}:")
+            // Minutes
+            append("${(it.duration / 1000) / 60 % 60}:")
+            // Seconds
+            append("${it.duration / 1000 % 60}<br><br>")
             }
-        }
     }
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
         Html.fromHtml(sb.toString(), Html.FROM_HTML_MODE_LEGACY)

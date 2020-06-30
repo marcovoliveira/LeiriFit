@@ -300,7 +300,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             takePhotoButton?.isEnabled = false;
             showNextCheckpoint()
         } else {
-            Toast.makeText(activity, "Imagem errada", Toast.LENGTH_LONG).show()
+            Toast.makeText(activity, "Imagem não reconhecida", Toast.LENGTH_LONG).show()
         }
 
     }
@@ -398,8 +398,9 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
             routeRequest()
 
-        } else if (currentDataSourceIndex + 1 == checkPointsDataSource.count()) {
+        } else if (currentDataSourceIndex == checkPointsDataSource.count()) {
             stopChronometer()
+            Toast.makeText(context, "Parabéns!!! Percurso concluido com sucesso", Toast.LENGTH_LONG).show()
             var run = Run();
             run.age = args?.age.toString()
             run.name = args?.participantName.toString()
@@ -408,10 +409,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             } else {
                 run.sexo = "Feminino"
             }
-            //run.distance =
-            //run.endTimeMilli
-            //run.startTimeMilli
-
+            run.distance = distanceInM.div(1000F)
 
             runViewModel?.insertRun(run)
 
@@ -578,7 +576,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private fun createDataSource() {
         //checkPointsDataSource.add(CheckpointModel("SeilA", LatLng(39.734144, -8.791863), "LA SEI"))
         //checkPointsDataSource.add(CheckpointModel("miradouro_ernesto", LatLng(39.746482, -8.809401), "Miradouro Ernesto Korrodi"))
-        checkPointsDataSource.add(
+        /*checkPointsDataSource.add(
             CheckpointModel(
                 "fonte_tres_bicas",
                 LatLng(39.743068, -8.805635),
@@ -636,6 +634,8 @@ class MainFragment : Fragment(), OnMapReadyCallback {
                 "Jardim Luis de Camões"
             )
         )
+        */
+
         checkPointsDataSource.add(
             CheckpointModel(
                 "fonte_luminosa",

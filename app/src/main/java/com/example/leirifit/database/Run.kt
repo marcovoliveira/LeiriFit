@@ -10,11 +10,8 @@ data class Run(
     @PrimaryKey(autoGenerate = true)
     var runId: Long = 0L,
 
-    @ColumnInfo(name = "start_time_milli")
-    val startTimeMilli: Long = System.currentTimeMillis(),
-
-    @ColumnInfo(name = "end_time_milli")
-    var endTimeMilli: Long = startTimeMilli,
+    @ColumnInfo(name = "duration")
+    var duration: Long = 0,
 
     @ColumnInfo(name = "distance")
     var distance: Float = 0F,

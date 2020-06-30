@@ -22,25 +22,7 @@ class RunViewModel(
 
     private val runs = database.getAllRuns()
 
-    init {
-        initializeRun()
-    }
 
-    private fun initializeRun() {
-        uiScope.launch {
-            run.value = getRunFromDatabase()
-        }
-    }
-
-    private suspend fun getRunFromDatabase(): Run? {
-        return withContext(Dispatchers.IO) {
-            var run = database.getRun()
-            if (run?.endTimeMilli != run?.startTimeMilli) {
-                run = null
-            }
-            run
-        }
-    }
 
     fun insertRun(run: Run) {
         uiScope.launch {
@@ -48,26 +30,8 @@ class RunViewModel(
         }
     }
 
-    fun onStartTracking() {
-        uiScope.launch {
-            val newRun = Run()
-            insert(newRun)
-            run.value = getRunFromDatabase()
-
-        }
-    }
-
     fun getAllRuns(): LiveData<List<Run>> {
         return runs;
-    }
-
-    fun onStopTracking(distance: Float) {
-        uiScope.launch {
-            val updateRun = run.value ?: return@launch
-            updateRun.endTimeMilli = System.currentTimeMillis()
-            updateRun.distance = distance
-            update(updateRun)
-        }
     }
 
     private suspend fun insert(run: Run) {

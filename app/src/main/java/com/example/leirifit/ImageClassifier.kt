@@ -125,13 +125,8 @@ internal constructor(context: Context) {
 
     /** Prints top-K labels, to be shown in UI as the results.  */
     private val printTopKLabels: (List<FirebaseVisionImageLabel>) -> String = {
-        it.joinToString(
-            separator = "\n",
-            limit = RESULTS_TO_SHOW
-        ) { label ->
-            String.format(
-                label.text
-            )
+        it.joinToString(limit = RESULTS_TO_SHOW) { label ->
+            String.format(label.text)
         }
     }
 
