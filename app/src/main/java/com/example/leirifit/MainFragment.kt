@@ -3,9 +3,11 @@ package com.example.leirifit
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -13,7 +15,10 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
-import android.os.*
+import android.os.AsyncTask
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -28,11 +33,15 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.example.leirifit.database.Run
 import com.example.leirifit.database.RunDatabase
 import com.example.leirifit.databinding.FragmentMainPageBinding
+import com.example.leirifit.geofencing.GeofenceBroadcastReceiver
 import com.example.leirifit.geofencing.GeofenceHelper
+import com.example.leirifit.viewmodel.RunViewModel
+import com.example.leirifit.viewmodel.RunViewModelFactory
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
@@ -40,8 +49,6 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.example.leirifit.viewmodel.RunViewModel
-import com.example.leirifit.viewmodel.RunViewModelFactory
 import com.google.android.gms.maps.model.*
 import com.google.firebase.ml.common.FirebaseMLException
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
@@ -134,6 +141,9 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             takePhoto()
         }
 
+        binding.startStopButton.setOnClickListener { handleNextCheckpointMapMovement() }
+
+
         setupNecessaryComponentsForMap()
         setupNecessaryComponentsForFencing()
 
@@ -149,14 +159,31 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         binding.setLifecycleOwner(this)
         binding.runViewModel = runViewModel
 
-        startChronometer();
-
         return binding.root
     }
 
     override fun onDestroy() {
         classifier?.close()
         super<Fragment>.onDestroy()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        activity!!.registerReceiver(receiver, IntentFilter("X"))
+    }
+
+    override fun onPause() {
+        super.onPause()
+        activity!!.unregisterReceiver(receiver)
+    }
+
+    private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            takePhoto()
+            if (currentDataSourceIndex == 0) {
+                startChronometer();
+            }
+        }
     }
 
     private fun setupNecessaryComponentsForMap() {
@@ -248,12 +275,24 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         classifier?.classifyFrame(bitmap)?.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 textView?.text = task.result
+                //TODO
+                validarImagem(task.result);
             } else {
                 val e = task.exception
                 Log.e(TAG, "Error classifying frame", e)
                 textView?.text = e?.message
             }
         }
+    }
+
+    private fun validarImagem(result: String?) {
+        showNextCheckpoint()
+        /*if(result == checkPointsDataSource[currentDataSourceIndex].name){
+           showNextCheckpoint()
+        } else {
+            Toast.makeText(activity, "Imagem errada", Toast.LENGHT).show()
+        }
+         */
     }
 
     private fun handleMapCreation() {
@@ -290,7 +329,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             currentCoords = LatLng(location.latitude, location.longitude);
 
             //f(currentDataSourceIndex > 0) {
-            if (previousCoords != null && currentDataSourceIndex > 0) {
+            if (previousCoords != null && running) {
 
                 var previousLocation: Location = Location("")
                 previousLocation.latitude = previousCoords?.latitude!!
@@ -312,20 +351,19 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap?) {
         map = googleMap;
-
-        // TODO: em vez de chamar este metodo aqui, chamar no click do botão "INICIAR"
-        handleNextCheckpointMapMovement()
     }
 
     private fun showNextCheckpoint() {
-        currentMarker?.remove()
-        circle?.remove()
         ++currentDataSourceIndex
         handleNextCheckpointMapMovement()
     }
 
     private fun handleNextCheckpointMapMovement() {
         if (currentDataSourceIndex < checkPointsDataSource.count()) {
+
+            currentMarker?.remove()
+
+            circle?.remove()
 
             currentMarker =
                 map?.addMarker(MarkerOptions().position(checkPointsDataSource[currentDataSourceIndex]))
@@ -334,14 +372,14 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
             map?.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
 
-            addGeofence(checkPointsDataSource[currentDataSourceIndex], 20f)
+            addGeofence(checkPointsDataSource[currentDataSourceIndex], 40f)
 
-            addGeofenceCircle(checkPointsDataSource[currentDataSourceIndex], 20.0)
+            addGeofenceCircle(checkPointsDataSource[currentDataSourceIndex], 40.0)
 
             routeRequest()
 
         } else if (currentDataSourceIndex + 1 == checkPointsDataSource.count()) {
-            // TODO: significa que terminou o percurso - mostrar estatísticas/mensagem de ganho
+
             var run = Run();
             run.age = args?.age.toString()
             run.name = args?.participantName.toString()
@@ -518,26 +556,19 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
 
     private fun createDataSource() {
-        // todo: DESCOMENTAR ISTO E COMENTAR A QUE VEM A SEGUIR
         checkPointsDataSource.add(LatLng(39.746482, -8.809401))
         checkPointsDataSource.add(LatLng(39.743068, -8.805635))
         checkPointsDataSource.add(LatLng(39.745650, -8.803727))
         checkPointsDataSource.add(LatLng(39.744278, -8.808344))
         checkPointsDataSource.add(LatLng(39.746168, -8.806836))
         checkPointsDataSource.add(LatLng(39.741834, -8.802860))
-        // var startingPointLargoCandidoReis: LatLng =  LatLng(39.751778, -8.809620)
+        checkPointsDataSource.add(LatLng(39.744464, -8.809540))
         checkPointsDataSource.add(LatLng(39.741347, -8.801447))
         checkPointsDataSource.add(LatLng(39.738997, -8.799663))
         checkPointsDataSource.add(LatLng(39.744753, -8.806314))
         checkPointsDataSource.add(LatLng(39.743775, -8.806916))
     }
 
-    public fun arrivedToCheckpoint() {
-        // TODO: aqui colocas as funções do takephoto e o resto do modelo
-        // TODO: provavelmente colocas o start nos tempos e na distância só quando ele aprovar a foto pelo modelo que está treinado
-        // TODO: utiliza um currentDataSourceIndex == 0 para saberes que ele chegou ao primeiro checkpoint
-        // TODO: quando ele validar os checkpoints, chama a função showNextCheckpoint()
-    }
 
     @SuppressLint("MissingPermission")
     private fun addGeofence(latLng: LatLng, radius: Float) {

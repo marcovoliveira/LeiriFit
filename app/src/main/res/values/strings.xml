@@ -9,8 +9,8 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="tempo">Tempo</string>
     <string name="distancia">Distancia</string>
-    <string name="_17_36">17:36</string>
-    <string name="_2_36">2.36</string>
+    <string name="_17_36">00:00</string>
+    <string name="_2_36">0.00</string>
     <string name="km">Km</string>
     <string name="jardim_lu_s_de_cam_es">Jardim Luís de Camões</string>
     <string name="proxima_paragem">Proxima paragem:</string>
@@ -21,8 +21,6 @@
     <string name="todo">TODO</string>
     <string name="image_leiria">Image leiria</string>
 
-
-    <string name="title"><![CDATA[<h3>HERE IS YOUR SLEEP DATA</h3>]]></string>
     <string name="start_time"><![CDATA[<b>Inicio:</b>]]></string>
     <string name="end_time"><![CDATA[<b>Fim:</b>]]></string>
     <string name="distance"><![CDATA[<b>Distancia:</b>]]></string>
@@ -30,8 +28,6 @@
     <string name="name_list"><![CDATA[<b>Nome:</b>]]></string>
     <string name="age_list"><![CDATA[<b>Idade:</b>]]></string>
     <string name="sex_list"><![CDATA[<b>Genero:</b>]]></string>
-
-
 
 
 </resources>

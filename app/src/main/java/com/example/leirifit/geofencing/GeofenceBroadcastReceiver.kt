@@ -4,9 +4,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import com.example.leirifit.MainFragment
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
+
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
@@ -43,9 +43,10 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                 "Geofence_transition_enter",
                 Toast.LENGTH_LONG
             ).show()
+            val intent = Intent("X") //FILTER is a string to identify this intent
 
-            // val intent = Intent(context, MainFragment::class.java)
-            // intent.putExtra("fence", "xpto")
+            intent.putExtra("Activate", true)
+            context.sendBroadcast(intent)
 
         }
     }
